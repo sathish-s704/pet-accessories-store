@@ -1,6 +1,14 @@
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { generateOTP } from "../utils/generateOTP.js";
+import { sendEmail } from "../utils/sendEmail.js";
+
+
+// 🔐 Importing necessary modules
+import express from "express";
+
+
 
 // 🔐 Generate JWT Token
 const generateToken = (user) => {
@@ -54,4 +62,53 @@ export const login = async (req, res) => {
 // 🚪 LOGOUT
 export const logout = (req, res) => {
   res.clearCookie("token", { httpOnly: true }).json({ message: "Logged out" });
+};
+
+
+
+// Forgot Password - Send OTP
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  const { otp, expiry } = generateOTP();
+  user.otp = otp;
+  user.otpExpiry = expiry;
+  await user.save();
+
+  await sendEmail(email, "Password Reset OTP", `Your OTP is: ${otp}`);
+  res.json({ message: "OTP sent to your email" });
+};
+
+export const verifyOTP = async (req, res) => {
+  console.log("🔎 verifyOTP called with:", req.body);
+  const { email, otp } = req.body;
+  const user = await User.findOne({ email });
+  console.log("➡️ Found user:", user, "Stored OTP:", user?.otp, "Expiry:", user?.otpExpiry);
+
+  if (!user || user.otp !== otp || user.otpExpiry < Date.now()) {
+    console.log("❌ Invalid or expired OTP");
+    return res.status(400).json({ message: "Invalid or expired OTP" });
+  }
+
+  console.log("✅ OTP verified!");
+  res.json({ message: "OTP verified" });
+};
+
+// Reset Password
+export const resetPassword = async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+  const user = await User.findOne({ email });
+
+  if (!user || user.otp !== otp || user.otpExpiry < Date.now()) {
+    return res.status(400).json({ message: "Invalid or expired OTP" });
+  }
+
+  user.password = await bcrypt.hash(newPassword, 10);
+  user.otp = null;
+  user.otpExpiry = null;
+  await user.save();
+
+  res.json({ message: "Password reset successful" });
 };
