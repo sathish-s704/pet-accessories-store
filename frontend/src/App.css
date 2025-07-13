@@ -1,0 +1,62 @@
+/* Layout: Make root take full height */
+html, body, #root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+/* Main content stretches to push footer to bottom */
+main {
+  flex: 1;
+}
+
+/* Footer styling (not fixed to allow scroll when content overflows) */
+footer {
+  background-color: #111;
+  color: #fff;
+  width: 100%;
+  padding: 1.5rem 0;
+}
+
+/* Footer link hover effects */
+.footer-link {
+  color: #ccc;
+  text-decoration: none;
+  transition: color 0.2s ease-in-out;
+}
+
+.footer-link:hover {
+  color: #fff;
+}
+
+/* Social icons hover */
+.social-icon {
+  color: #ccc;
+  font-size: 1.5rem;
+  transition: color 0.3s ease;
+}
+
+.social-icon:hover {
+  color: #0d6efd;
+}
+
+/* Contact form styling */
+form label {
+  font-weight: 500;
+}
+
+form input,
+form textarea {
+  box-shadow: none !important;
+}
+
+/* In App.css */
+.form-control {
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+  transition: all 0.3s ease-in-out;
+}
+.form-control:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 8px rgba(0, 123, 255, 0.8);
+}
