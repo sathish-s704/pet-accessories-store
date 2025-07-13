@@ -6,7 +6,13 @@ export const getProfile = async (req, res) => {
   const user = await User.findById(req.user.id)
     .select("-password -otp -otpExpiry")
     .populate("wishlist", "name price imageUrl");
-  res.json(user);
+  res.json({
+    name: user.name,
+    email: user.email,
+    phone: user.phone,
+    address: user.address,
+    wishlist: user.wishlist,
+  });
 };
 
 // Update name, phone, address

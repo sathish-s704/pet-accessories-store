@@ -30,19 +30,35 @@ const cookieOptions = {
 // 🔐 REGISTER
 export const register = async (req, res) => {
   const { name, email, password, role } = req.body;
+
   try {
     const exists = await User.findOne({ email });
-    if (exists) return res.status(400).json({ message: "User already exists" });
+    if (exists) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    // ✅ Strong password validation
+    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&+=!]).{8,}$/;
+    if (!strongPasswordRegex.test(password)) {
+      return res.status(400).json({
+        message:
+          "Password must be at least 8 characters and include uppercase, lowercase, number, and special character."
+      });
+    }
 
     const hashed = await bcrypt.hash(password, 10);
     const user = await User.create({ name, email, password: hashed, role });
 
     const token = generateToken(user);
-    res.cookie("token", token, cookieOptions).status(201).json({ user });
+    res
+      .cookie("token", token, cookieOptions)
+      .status(201)
+      .json({ user });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
+
 
 // 🔐 LOGIN
 export const login = async (req, res) => {
@@ -98,9 +114,26 @@ export const verifyOTP = async (req, res) => {
 
 // Reset Password
 export const resetPassword = async (req, res) => {
-  const { email, otp, newPassword } = req.body;
-  const user = await User.findOne({ email });
+  const { email, otp, newPassword, confirmPassword } = req.body;
 
+  if (!newPassword || !confirmPassword) {
+    return res.status(400).json({ message: "Both password fields are required" });
+  }
+
+  if (newPassword !== confirmPassword) {
+    return res.status(400).json({ message: "Passwords do not match" });
+  }
+
+  // Strong password regex check
+  const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&+=!]).{8,}$/;
+  if (!strongPasswordRegex.test(newPassword)) {
+    return res.status(400).json({
+      message:
+        "Password must be at least 8 characters, include uppercase, lowercase, number, and special character."
+    });
+  }
+
+  const user = await User.findOne({ email });
   if (!user || user.otp !== otp || user.otpExpiry < Date.now()) {
     return res.status(400).json({ message: "Invalid or expired OTP" });
   }
