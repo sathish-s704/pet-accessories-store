@@ -15,12 +15,20 @@ function Login() {
     e.preventDefault();
     try {
       const res = await axios.post('/api/auth/login', { email, password });
-      alert(res.data.message || 'Login successful');
 
-      setUser(res.data.user); // ✅ Store user context
+      const loggedInUser = {
+        ...res.data.user,
+        token: res.data.token || res.data.user?.token // in case token is separated
+      };
+
+      // ✅ Save to context and localStorage
+      setUser(loggedInUser);
+      localStorage.setItem('user', JSON.stringify(loggedInUser));
+
+      alert(res.data.message || 'Login successful');
       navigate('/'); // ✅ Redirect to home
     } catch (err) {
-      alert(err.response?.data?.error || 'Login failed!');
+      alert(err.response?.data?.message || 'Login failed!');
     }
   };
 

@@ -1,15 +1,38 @@
-import { Card, Button } from 'react-bootstrap';
-import { AddShoppingCart } from '@mui/icons-material';
+import { Card, Button } from "react-bootstrap";
 
-function ProductCard({ product }) {
+function ProductCard({ product, onAddToCart }) {
+ const imageUrl = product.imageUrl
+  ? `http://localhost:3000/${product.imageUrl.replace(/\\/g, '/')}`
+  : 'https://via.placeholder.com/200x200?text=No+Image';
+
+
   return (
-    <Card className="m-3 shadow-sm" style={{ width: '18rem' }}>
-      <Card.Img variant="top" src={product.image} />
+    <Card className="mb-4 shadow-sm">
+      <Card.Img
+        variant="top"
+        src={imageUrl}
+        style={{ height: "220px", objectFit: "cover" }}
+        alt={product.name}
+      />
       <Card.Body>
         <Card.Title>{product.name}</Card.Title>
-        <Card.Text>₹{product.price}</Card.Text>
-        <Button variant="outline-primary">
-          <AddShoppingCart /> Add to Cart
+        <Card.Text className="text-muted">{product.category}</Card.Text>
+        <Card.Text>
+          <strong>₹{product.price}</strong>
+        </Card.Text>
+        <Card.Text>
+          {product.inStock ? (
+            <span className="text-success">In Stock</span>
+          ) : (
+            <span className="text-danger">Out of Stock</span>
+          )}
+        </Card.Text>
+        <Button
+          variant="primary"
+          onClick={() => onAddToCart?.(product)}
+          disabled={!product.inStock}
+        >
+          Add to Cart
         </Button>
       </Card.Body>
     </Card>

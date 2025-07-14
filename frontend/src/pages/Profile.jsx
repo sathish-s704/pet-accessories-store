@@ -6,7 +6,17 @@ import { useAuth } from "../context/AuthContext";
 const Profile = () => {
   const { user } = useAuth();
   const [profile, setProfile] = useState({});
-  const [formData, setFormData] = useState({ name: "", phone: "", address: "" });
+  const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
+    address: {
+      street: "",
+      city: "",
+      state: "",
+      zip: "",
+      country: "",
+    },
+  });
   const [editMode, setEditMode] = useState(false);
   const [orders, setOrders] = useState([]);
   const [wishlist, setWishlist] = useState([]);
@@ -18,11 +28,18 @@ const Profile = () => {
           Authorization: `Bearer ${user?.token}`,
         },
       });
+      console.log("📦 Profile Response:", res.data); // Add this
       setProfile(res.data);
       setFormData({
         name: res.data.name || "",
         phone: res.data.phone || "",
-        address: res.data.address || "",
+        address: res.data.address || {
+          street: "",
+          city: "",
+          state: "",
+          zip: "",
+          country: "",
+        },
       });
       setWishlist(res.data.wishlist || []);
     } catch (err) {
@@ -51,7 +68,15 @@ const Profile = () => {
   }, [user]);
 
   const handleChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    if (["street", "city", "state", "zip", "country"].includes(name)) {
+      setFormData((prev) => ({
+        ...prev,
+        address: { ...prev.address, [name]: value },
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleUpdate = async (e) => {
@@ -78,11 +103,11 @@ const Profile = () => {
       {!editMode ? (
         <div>
           <Row className="mb-3">
-            <Col><strong>Name:</strong> {profile.name || "N/A"}</Col>
-            <Col><strong>Email:</strong> {profile.email || "N/A"}</Col>
+            <Col><strong>Name:</strong> {profile.name}</Col>
+            <Col><strong>Email:</strong> {profile.email}</Col>
           </Row>
           <p><strong>Phone:</strong> {profile.phone || "N/A"}</p>
-          <p><strong>Address:</strong> {profile.address || "N/A"}</p>
+          <p><strong>Address:</strong> {profile?.address?.street}, {profile?.address?.city}, {profile?.address?.state}, {profile?.address?.zip}, {profile?.address?.country}</p>
           <Button onClick={() => setEditMode(true)}>Edit Profile</Button>
         </div>
       ) : (
@@ -101,10 +126,23 @@ const Profile = () => {
             <Form.Label>Phone</Form.Label>
             <Form.Control name="phone" value={formData.phone} onChange={handleChange} />
           </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Label>Address</Form.Label>
-            <Form.Control name="address" value={formData.address} onChange={handleChange} />
+
+          <Form.Group className="mb-2"><Form.Label>Street</Form.Label>
+            <Form.Control name="street" value={formData.address.street} onChange={handleChange} />
           </Form.Group>
+          <Form.Group className="mb-2"><Form.Label>City</Form.Label>
+            <Form.Control name="city" value={formData.address.city} onChange={handleChange} />
+          </Form.Group>
+          <Form.Group className="mb-2"><Form.Label>State</Form.Label>
+            <Form.Control name="state" value={formData.address.state} onChange={handleChange} />
+          </Form.Group>
+          <Form.Group className="mb-2"><Form.Label>ZIP</Form.Label>
+            <Form.Control name="zip" value={formData.address.zip} onChange={handleChange} />
+          </Form.Group>
+          <Form.Group className="mb-3"><Form.Label>Country</Form.Label>
+            <Form.Control name="country" value={formData.address.country} onChange={handleChange} />
+          </Form.Group>
+
           <Button type="submit" variant="primary" className="me-2">Update Profile</Button>
           <Button variant="secondary" onClick={() => setEditMode(false)}>Cancel</Button>
         </Form>
@@ -112,7 +150,6 @@ const Profile = () => {
 
       <hr className="my-4" />
 
-      {/* Wishlist Section */}
       <h4>❤️ Wishlist</h4>
       <Row>
         {wishlist.length > 0 ? wishlist.map(product => (
@@ -129,8 +166,6 @@ const Profile = () => {
       </Row>
 
       <hr className="my-4" />
-
-      {/* Orders Section */}
       <h4>🧾 My Orders</h4>
       {orders.length > 0 ? orders.map(order => (
         <Card key={order._id} className="mb-3">
