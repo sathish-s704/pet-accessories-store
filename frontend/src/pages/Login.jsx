@@ -8,25 +8,37 @@ function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [role, setRole] = useState('user');
   const navigate = useNavigate();
   const { setUser } = useAuth(); // ✅
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('/api/auth/login', { email, password });
+      const res = await axios.post('/api/auth/login', { email, password, role });
 
       const loggedInUser = {
         ...res.data.user,
         token: res.data.token || res.data.user?.token // in case token is separated
       };
 
-      // ✅ Save to context and localStorage
+      // Check if selected role matches backend role
+      if (loggedInUser.role !== role) {
+        alert('Invalid role selected for this account');
+        return;
+      }
+
+      // Save to context and localStorage
       setUser(loggedInUser);
       localStorage.setItem('user', JSON.stringify(loggedInUser));
 
       alert(res.data.message || 'Login successful');
-      navigate('/'); // ✅ Redirect to home
+      // Role-based redirection
+      if (loggedInUser.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       alert(err.response?.data?.message || 'Login failed!');
     }
@@ -65,6 +77,14 @@ function Login() {
               {showPassword ? '🙈' : '👁️'}
             </Button>
           </InputGroup>
+        </Form.Group>
+
+        <Form.Group className="mb-3">
+          <Form.Label>Role</Form.Label>
+          <Form.Select value={role} onChange={e => setRole(e.target.value)} required>
+            <option value="user">user</option>
+            <option value="admin">admin</option>
+          </Form.Select>
         </Form.Group>
 
         <Button variant="primary" type="submit" className="w-100">

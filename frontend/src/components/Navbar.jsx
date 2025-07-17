@@ -29,9 +29,16 @@ function NavigationBar() {
 
             {user ? (
               <>
-                <Nav.Link as={Link} to="/profile">👤 Profile</Nav.Link>
+                {user.role === 'user' && (
+                  <Nav.Link as={Link} to="/profile">👤 Profile</Nav.Link>
+                )}
+                {user.role === 'admin' && (
+                  <Nav.Link as={Link} to="/admin/dashboard">
+                    <AdminPanelSettings style={{ verticalAlign: 'middle' }} /> Admin Dashboard
+                  </Nav.Link>
+                )}
                 <Button
-                  variant="danger"
+                  variant="outline-light"
                   size="sm"
                   onClick={handleLogout}
                   className="ms-2"
@@ -49,10 +56,6 @@ function NavigationBar() {
                 </Nav.Link>
               </>
             )}
-
-            <Nav.Link as={Link} to="/admin">
-              <AdminPanelSettings style={{ verticalAlign: 'middle' }} /> Admin
-            </Nav.Link>
           </Nav>
         </Navbar.Collapse>
       </Container>
