@@ -5,9 +5,26 @@ export const createOrder = async (req, res) => {
   try {
     const { products, totalAmount } = req.body;
 
+    const snapshotProducts = [];
+
+    for (const item of products) {
+      const prod = await Product.findById(item.product);
+      if (!prod) {
+        return res.status(400).json({ message: `Product ${item.product} not found` });
+      }
+
+      snapshotProducts.push({
+        product: prod._id,
+        name: prod.name,
+        price: prod.price,
+        imageUrl: prod.imageUrl,
+        quantity: item.quantity || 1
+      });
+    }
+
     const order = await Order.create({
       user: req.user._id,
-      products,
+      products: snapshotProducts,
       totalAmount
     });
 
@@ -17,16 +34,27 @@ export const createOrder = async (req, res) => {
   }
 };
 
-// Get Orders by User (User)
+// Get Orders by User
 export const getMyOrders = async (req, res) => {
-  const orders = await Order.find({ user: req.user._id }).populate("products.product", "name price");
-  res.json(orders);
+  try {
+    const orders = await Order.find({ user: req.user._id })
+      .populate("products.product", "name price imageUrl");
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
 // Get All Orders (Admin)
 export const getAllOrders = async (req, res) => {
-  const orders = await Order.find().populate("user", "name email").populate("products.product", "name price");
-  res.json(orders);
+  try {
+    const orders = await Order.find()
+      .populate("user", "name email")
+      .populate("products.product", "name price");
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
 // Update Order Status (Admin)

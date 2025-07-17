@@ -4,12 +4,6 @@ import jwt from "jsonwebtoken";
 import { generateOTP } from "../utils/generateOTP.js";
 import { sendEmail } from "../utils/sendEmail.js";
 
-
-// 🔐 Importing necessary modules
-import express from "express";
-
-
-
 // 🔐 Generate JWT Token
 const generateToken = (user) => {
   return jwt.sign(
@@ -37,7 +31,6 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // ✅ Strong password validation
     const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&+=!]).{8,}$/;
     if (!strongPasswordRegex.test(password)) {
       return res.status(400).json({
@@ -50,26 +43,53 @@ export const register = async (req, res) => {
     const user = await User.create({ name, email, password: hashed, role });
 
     const token = generateToken(user);
+
     res
       .cookie("token", token, cookieOptions)
       .status(201)
-      .json({ user });
+      .json({
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          phone: user.phone,
+          address: user.address,
+        },
+        token, // ✅ added token in response
+        message: "Registration successful"
+      });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-
 // 🔐 LOGIN
 export const login = async (req, res) => {
   const { email, password } = req.body;
+
   try {
     const user = await User.findOne({ email });
-    if (!user || !(await bcrypt.compare(password, user.password)))
+    if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ message: "Invalid credentials" });
+    }
 
     const token = generateToken(user);
-    res.cookie("token", token, cookieOptions).json({ user });
+
+    res
+      .cookie("token", token, cookieOptions)
+      .json({
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          phone: user.phone,
+          address: user.address,
+        },
+        token, // ✅ added token in response
+        message: "Login successful"
+      });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -80,9 +100,7 @@ export const logout = (req, res) => {
   res.clearCookie("token", { httpOnly: true }).json({ message: "Logged out" });
 };
 
-
-
-// Forgot Password - Send OTP
+// 🔑 Forgot Password - Send OTP
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;
   const user = await User.findOne({ email });
@@ -97,6 +115,7 @@ export const forgotPassword = async (req, res) => {
   res.json({ message: "OTP sent to your email" });
 };
 
+// 🔎 Verify OTP
 export const verifyOTP = async (req, res) => {
   console.log("🔎 verifyOTP called with:", req.body);
   const { email, otp } = req.body;
@@ -112,7 +131,7 @@ export const verifyOTP = async (req, res) => {
   res.json({ message: "OTP verified" });
 };
 
-// Reset Password
+// 🔁 Reset Password
 export const resetPassword = async (req, res) => {
   const { email, otp, newPassword, confirmPassword } = req.body;
 
@@ -124,7 +143,6 @@ export const resetPassword = async (req, res) => {
     return res.status(400).json({ message: "Passwords do not match" });
   }
 
-  // Strong password regex check
   const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&+=!]).{8,}$/;
   if (!strongPasswordRegex.test(newPassword)) {
     return res.status(400).json({

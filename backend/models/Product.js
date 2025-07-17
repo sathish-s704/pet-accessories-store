@@ -5,8 +5,9 @@ const productSchema = new mongoose.Schema({
   description: String,
   price: { type: Number, required: true },
   category: String,
-  imageUrl: String, // store image path
+  imageUrl: String, // file path
   inStock: { type: Boolean, default: true }
 }, { timestamps: true });
+const Product = mongoose.model("Product", productSchema);
 
-export default mongoose.model("Product", productSchema);
+export default Product;
