@@ -11,6 +11,9 @@ import userRoutes from "./routes/userRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import contactRoutes from './routes/contactRoutes.js';
+import adminRoutes from "./routes/adminRoutes.js";
+import path from "path";
+import { fileURLToPath } from 'url';
 const app = express();
 //middleware for parsing json request for body
 app.use(bodyParser.json());
@@ -26,8 +29,17 @@ app.use("/api/user", userRoutes);
 app.use("/api/paypal", paymentRoutes);
 app.use('/api/contact', contactRoutes);
 
+app.use("/api/admin", adminRoutes);
+
+
 app.use("/api/products", productRoutes);
-app.use("/uploads", express.static("uploads")); // to serve images
+
+// Resolve __dirname in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Serve static files from /uploads
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 //connect to database
 mongoose.connect(db).then(() => {console.log('Connected to database');
