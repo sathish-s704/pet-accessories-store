@@ -45,16 +45,13 @@ const AdminDashboard = () => {
           orderHistory: orders,
         });
       } catch (err) {
-        // Use placeholder values if API fails
+        // Do not set placeholder values
         setSummary({
-          products: 12,
-          users: 5,
-          orders: 8,
-          income: 1200,
-          orderHistory: [
-            { _id: '1', user: { name: 'Alice' }, products: [1,2], total: 200, status: 'Paid', createdAt: '2024-06-01' },
-            { _id: '2', user: { name: 'Bob' }, products: [3], total: 100, status: 'Pending', createdAt: '2024-06-02' },
-          ],
+          products: 0,
+          users: 0,
+          orders: 0,
+          income: 0,
+          orderHistory: [],
         });
       }
     };
