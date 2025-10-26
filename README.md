@@ -2,6 +2,8 @@
 
 A full-stack e-commerce application for pet accessories with PayPal payment integration.
 
+🌐 Live Demo: https://pet-frontend-tau.vercel.app/
+
 ## Features
 
 - 🛍️ Product catalog with search and filtering
