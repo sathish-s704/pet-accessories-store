@@ -111,17 +111,38 @@ export const logout = (req, res) => {
 
 // 🔑 Forgot Password - Send OTP
 export const forgotPassword = async (req, res) => {
-  const { email } = req.body;
-  const user = await User.findOne({ email });
-  if (!user) return res.status(404).json({ message: "User not found" });
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
 
-  const { otp, expiry } = generateOTP();
-  user.otp = otp;
-  user.otpExpiry = expiry;
-  await user.save();
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-  await sendEmail(email, "Password Reset OTP", `Your OTP is: ${otp}`);
-  res.json({ message: "OTP sent to your email" });
+    const { otp, expiry } = generateOTP();
+    user.otp = otp;
+    user.otpExpiry = expiry;
+    await user.save();
+
+    try {
+      await sendEmail(email, "Password Reset OTP", `Your OTP is: ${otp}`);
+      res.json({ message: "OTP sent to your email" });
+    } catch (emailError) {
+      console.error("Email sending error:", emailError);
+      // Revert the OTP save if email fails
+      user.otp = null;
+      user.otpExpiry = null;
+      await user.save();
+      return res.status(500).json({ message: "Failed to send email. Please try again later." });
+    }
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.status(500).json({ message: "An error occurred. Please try again later." });
+  }
 };
 
 // 🔎 Verify OTP

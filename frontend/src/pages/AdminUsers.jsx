@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import AdminLayout from '../components/AdminLayout';
 import { Table, Button, Modal, Form, Alert, Badge, Row, Col, Card } from 'react-bootstrap';
-import axios from 'axios';
+import axiosInstance from '../utils/axiosConfig';
 
 const AdminUsers = () => {
   const { user } = useAuth();
@@ -25,14 +25,12 @@ const AdminUsers = () => {
     else fetchUsers();
   }, [user, navigate]);
 
-  const getAuthConfig = () => ({
-    headers: { Authorization: `Bearer ${user?.token}` }
-  });
+  // Auth config is handled by axiosInstance interceptor
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/admin/users', getAuthConfig());
+      const response = await axiosInstance.get('/admin/users');
       setUsers(response.data);
       
       // Calculate stats
@@ -60,10 +58,10 @@ const AdminUsers = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      await axios.put(`/api/admin/users/${selectedUser._id}`, {
+      await axiosInstance.put(`/admin/users/${selectedUser._id}`, {
         role: selectedUser.role,
         isBlocked: selectedUser.isBlocked
-      }, getAuthConfig());
+      });
       
       await fetchUsers();
       setShowModal(false);
@@ -80,7 +78,7 @@ const AdminUsers = () => {
     if (window.confirm(`Are you sure you want to delete user "${userName}"? This action cannot be undone.`)) {
       try {
         setLoading(true);
-        await axios.delete(`/api/admin/users/${userId}`, getAuthConfig());
+        await axiosInstance.delete(`/admin/users/${userId}`);
         await fetchUsers();
       } catch (err) {
         console.error('Error deleting user:', err);

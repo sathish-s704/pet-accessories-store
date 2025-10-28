@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Form, Button, Container, InputGroup } from 'react-bootstrap';
-import axios from 'axios';
+import axiosInstance from '../utils/axiosConfig';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext'; // ✅
 
@@ -14,7 +14,7 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('/api/auth/login', { email, password });
+      const res = await axiosInstance.post('/auth/login', { email, password });
 
       const loggedInUser = {
         ...res.data.user,
